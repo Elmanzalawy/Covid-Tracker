@@ -16,6 +16,7 @@
 <script>
 import LineChart from "./charts/LineChart.vue";
 import axios from 'axios'
+import moment from 'moment'
 
 export default {
   name: 'LineChartContainer',
@@ -107,7 +108,7 @@ created(){
         .get(`https://api.covid19api.com/total/country/${this.countrySlug}?from=2021-04-01T00:00:00Z&to=2021-04-24T00:00:00Z`)
         .then(function(response){
             response.data.forEach(record => {
-                self.datacollection.labels.push(record.Date);
+                self.datacollection.labels.push(moment(new Date(record.Date)).format("M-D"));
                 self.datacollection.datasets[0].data.push(record.Confirmed);
                 self.datacollection.datasets[1].data.push(record.Recovered);
                 self.datacollection.datasets[2].data.push(record.Deaths);
