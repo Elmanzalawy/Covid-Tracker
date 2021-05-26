@@ -1,18 +1,7 @@
 <template>
   <div>
     <h3>Global Cases</h3>
-    <div class="row mb-4">
-      <div class="col-md-4 mt-2">
-        <label for="date-from">From</label>
-        <input name="date-from" id="date-from" class="form-control" type="date" v-model="dateFrom"
-          v-on:change="updateDateFrom($event)">
-      </div>
-      <div class="col-md-4 mt-2">
-        <label for="date-to">To</label>
-        <input name="date-to" id="date-to" class="form-control" type="date" v-model="dateTo"
-          v-on:change="updateDateTo($event)">
-      </div>
-    </div>
+
     <LineChart v-model="datacollection" v-bind:chartData="datacollection" :options="options" :key="componentKey" />
   </div>
 </template>
@@ -21,6 +10,7 @@
   import LineChart from "./charts/LineChart.vue";
   import axios from 'axios'
   import moment from 'moment'
+  import {bus} from "../main"
 
   export default {
     name: 'LineChartContainer',
@@ -87,6 +77,19 @@
 
     created() {
       // var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop)
+      bus.$on("dateFromChanged", (date) => {
+        // this.period.from = date;
+        this.updateDateFrom(date)
+        this.getGlobalData()
+        this.componentKey++;
+      })
+      bus.$on("dateToChanged", (date) => {
+        // this.period.to = date;
+        this.updateDateTo(date)
+        this.getGlobalData()
+        this.componentKey++;
+      })
+
       this.period.from = this.startDate;
       this.period.to = this.endDate;
       this.dateFrom = moment(new Date(this.startDate)).format("YYYY-MM-DD");
@@ -123,17 +126,13 @@
           });
       },
 
-      updateDateFrom(event) {
-        var date = new Date(event.target.value);
+      updateDateFrom(date) {
         this.dateFrom = moment(date).format("YYYY-MM-DD");
         this.period.from = moment(date).format("Y-MM-DD\\Thh:mm:ss");
-        this.getGlobalData();
       },
-      updateDateTo(event) {
-        var date = new Date(event.target.value);
+      updateDateTo(date) {
         this.dateTo = moment(date).format("YYYY-MM-DD");
         this.period.to = moment(date).format("Y-MM-DD\\Thh:mm:ss");
-        this.getGlobalData();
       },
 
       formatDate(date, format) {

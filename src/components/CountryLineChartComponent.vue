@@ -2,26 +2,7 @@
   <div>
     <h3>Cases in {{country}}</h3>
 
-    <div class="row mb-4">
-      <div class="col-lg-4 mt-2">
-        <label for="date-from">From</label>
-        <input name="date-from" id="date-from" class="form-control" type="date" v-model="dateFrom"
-          v-on:change="updateDateFrom($event)">
-      </div>
-      <div class="col-lg-4 mt-2">
-        <label for="date-to">To</label>
-        <input name="date-to" id="date-to" class="form-control" type="date" v-model="dateTo"
-          v-on:change="updateDateTo($event)">
-      </div>
-      <div class="col-lg-4 mt-2">
-        <label for="country">Select Country</label>
-        <input class="form-control" list='countries' name="country" id="country" v-on:change="selectCountry($event)"
-          placeholder="Select Country">
-        <datalist id="countries">
-          <!-- countries are dynamically inserted here as <option> tags -->
-        </datalist>
-      </div>
-    </div>
+
     <LineChart v-model="datacollection" v-bind:chartData="datacollection" :options="options" :key="componentKey" />
   </div>
 </template>
@@ -30,6 +11,7 @@
   import LineChart from "./charts/LineChart.vue";
   import axios from 'axios'
   import moment from 'moment'
+  import {bus} from "../main";
 
   export default {
     name: 'LineChartContainer',
@@ -37,11 +19,20 @@
       LineChart
     },
 
+    props: {
+      country:{
+        type:String
+      },
+      countrySlug:{
+        type:String
+      },
+    },
+
     data() {
       return {
         componentKey: 0,
-        country: "Egypt",
-        countrySlug: "egypt",
+        // country: "Egypt",
+        // countrySlug: "egypt",
         period: {
           from: null,
           to: null
@@ -101,15 +92,28 @@
     created() {
       // var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop) 
       //get available countries
+      bus.$on("countryChanged", (country) => {
+        this.country = country;
+        this.getCountryData();
+        this.componentKey++;
+      })
+      bus.$on("dateFromChanged", (date) => {
+        // this.period.from = date;
+        this.updateDateFrom(date)
+        this.getCountryData();
+        this.componentKey++;
+      })
+      bus.$on("dateToChanged", (date) => {
+        // this.period.to = date;
+        this.updateDateTo(date)
+        this.getCountryData();
+        this.componentKey++;
+      })
+
       this.period.from = this.startDate;
       this.period.to = this.endDate;
       this.dateFrom = moment(new Date(this.startDate)).format("YYYY-MM-DD");
       this.dateTo = moment(new Date(this.endDate)).format("YYYY-MM-DD");
-
-
-
-      this.getAvailableCountries();
-
 
       this.getCountryData();
 
@@ -117,25 +121,6 @@
 
     mounted() {},
     methods: {
-      getAvailableCountries() {
-        var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop) 
-        axios
-          .get('https://api.covid19api.com/countries')
-          .then(function (response) {
-            response.data.forEach(record => {
-              self.countries.push(record);
-              document.getElementById("countries").innerHTML +=
-                `<option value="${record.Slug}">${record.Country}</option>`
-            })
-          });
-      },
-
-      selectCountry(event) {
-        this.countrySlug = event.target.value;
-        this.country = event.target.value;
-        this.getCountryData()
-      },
-
       async getCountryData() {
         var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop) 
 
@@ -160,17 +145,13 @@
           });
       },
 
-      updateDateFrom(event) {
-        var date = new Date(event.target.value);
+      updateDateFrom(date) {
         this.dateFrom = moment(date).format("YYYY-MM-DD");
         this.period.from = moment(date).format("Y-MM-DD\\Thh:mm:ss");
-        this.getCountryData();
       },
-      updateDateTo(event) {
-        var date = new Date(event.target.value);
+      updateDateTo(date) {
         this.dateTo = moment(date).format("YYYY-MM-DD");
         this.period.to = moment(date).format("Y-MM-DD\\Thh:mm:ss");
-        this.getCountryData();
       },
 
     }
