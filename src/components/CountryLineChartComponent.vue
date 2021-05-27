@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h3>Global Cases</h3>
+    <h3>Cases in {{country}}</h3>
+
 
     <LineChart v-model="datacollection" v-bind:chartData="datacollection" :options="options" :key="componentKey" />
   </div>
@@ -10,7 +11,7 @@
   import LineChart from "./charts/LineChart.vue";
   import axios from 'axios'
   import moment from 'moment'
-  import {bus} from "../main"
+  import {bus} from "../main";
 
   export default {
     name: 'LineChartContainer',
@@ -18,15 +19,27 @@
       LineChart
     },
 
+    props: {
+      country:{
+        type:String
+      },
+      countrySlug:{
+        type:String
+      },
+    },
+
     data() {
       return {
         componentKey: 0,
+        // country: "Egypt",
+        // countrySlug: "egypt",
         period: {
           from: null,
           to: null
         },
         dateFrom: null,
         dateTo: null,
+        countries: [],
         datacollection: {
           labels: [],
           datasets: [{
@@ -64,6 +77,7 @@
         }
       }
     },
+
     computed: {
       startDate: function () {
         var startDate = new Date();
@@ -76,17 +90,23 @@
     },
 
     created() {
-      // var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop)
+      // var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop) 
+      //get available countries
+      bus.$on("countryChanged", (country) => {
+        this.country = country;
+        this.getCountryData();
+        this.componentKey++;
+      })
       bus.$on("dateFromChanged", (date) => {
         // this.period.from = date;
         this.updateDateFrom(date)
-        this.getGlobalData()
+        this.getCountryData();
         this.componentKey++;
       })
       bus.$on("dateToChanged", (date) => {
         // this.period.to = date;
         this.updateDateTo(date)
-        this.getGlobalData()
+        this.getCountryData();
         this.componentKey++;
       })
 
@@ -94,14 +114,14 @@
       this.period.to = this.endDate;
       this.dateFrom = moment(new Date(this.startDate)).format("YYYY-MM-DD");
       this.dateTo = moment(new Date(this.endDate)).format("YYYY-MM-DD");
-      this.getGlobalData();
-    },
 
-    mounted() {
+      this.getCountryData();
 
     },
+
+    mounted() {},
     methods: {
-      getGlobalData() {
+      async getCountryData() {
         var self = this; //assign component reference to a temporary variable (we use this for the ForEach loop) 
 
         //before retrieving data, we need to clear previous data if it exists:
@@ -109,18 +129,17 @@
         self.datacollection.datasets.forEach(dataset => {
           dataset.data = [];
         });
-        
+
         axios
-          .get(`https://api.covid19api.com/world?from=${this.period.from}&to=${this.period.to}`)
+          .get(
+            `https://api.covid19api.com/total/country/${this.countrySlug}?from=${this.period.from}&to=${this.period.to}`
+          )
           .then(function (response) {
-            var data = response.data;
-            //first we need to sort records by date (asc)
-            data = data.sort((a, b) => new Date(a.Date) - new Date(b.Date))
-            data.forEach(record => {
+            response.data.forEach(record => {
               self.datacollection.labels.push(moment(new Date(record.Date)).format("MM-DD"));
-              self.datacollection.datasets[0].data.push(record.NewConfirmed);
-              self.datacollection.datasets[1].data.push(record.NewRecovered);
-              self.datacollection.datasets[2].data.push(record.NewDeaths);
+              self.datacollection.datasets[0].data.push(record.Confirmed);
+              self.datacollection.datasets[1].data.push(record.Recovered);
+              self.datacollection.datasets[2].data.push(record.Deaths);
             })
             self.componentKey++;
           });
@@ -135,10 +154,10 @@
         this.period.to = moment(date).format("Y-MM-DD\\Thh:mm:ss");
       },
 
-      formatDate(date, format) {
-        return moment(new Date(date)).format(format)
-      }
-
     }
   }
 </script>
+
+<style scoped>
+
+</style>
