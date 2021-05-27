@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3>Today in {{country}}</h3>
-    <small class="mb-2">Last Updated: {{lastUpdated}}</small>
+    <!-- <small class="mb-2">Last Updated: {{lastUpdated}}</small> -->
     <PieChart v-model="datacollection" v-bind:chartData="datacollection" :options="options" :key="componentKey" />
   </div>
 </template>
