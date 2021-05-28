@@ -32,11 +32,11 @@
       <div class="row">
         <div class="col-md-6 pl-3 py-2">
           <!-- <GlobalChartComponent /> -->
-          <CountryLineChartComponent v-bind:country="country" v-bind:countrySlug="countrySlug"/>
+          <CountryLineChartComponent v-bind:country="country" v-bind:defaultGraphColor="defaultGraphColor" v-bind:countrySlug="countrySlug"/>
 
         </div>
         <div class="col-md-6 pl-3 py-2">
-          <CountryPieChartComponent v-bind:country="country"/>
+          <CountryPieChartComponent v-bind:country="country" v-bind:defaultGraphColor="defaultGraphColor"/>
         </div>
       </div>
 
@@ -83,6 +83,7 @@
         componentKey: 0,
         country: "Egypt",
         countrySlug: "egypt",
+        defaultGraphColor: "lightgray",
         period: {
           from: null,
           to: null

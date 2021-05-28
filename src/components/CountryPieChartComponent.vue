@@ -26,6 +26,9 @@
       countrySlug:{
         type:String
       },
+      defaultGraphColor: {
+        type:String
+      }
     },
 
     data() {
@@ -62,10 +65,17 @@
             yAxes: [{
               ticks: {
                 // beginAtZero: true,
-                padding: 25
+                padding: 5,
+                fontColor: this.defaultGraphColor
               }
             }]
-          }
+          },
+          legend: {
+            labels: {
+                // This more specific font property overrides the global property
+                fontColor:  this.defaultGraphColor
+            }
+        }
         }
       }
     },
